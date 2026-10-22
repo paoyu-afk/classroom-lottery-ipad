@@ -239,6 +239,26 @@
             .popup-overlay { box-sizing: border-box; overflow-y: auto; overscroll-behavior: contain; padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
             .popup-overlay .popup-content { box-sizing: border-box; max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
             .popup-overlay textarea, .popup-overlay input, .popup-overlay select { font-size: 16px !important; }
+            .card-draw-popup {
+                width: min(90vw, 920px);
+                min-width: 0;
+                max-width: 90vw;
+                box-sizing: border-box;
+                padding: clamp(16px, 3vw, 36px);
+                max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .card-draw-popup h2 { font-size: clamp(1.75rem, 5vw, 3rem); margin-bottom: clamp(12px, 2vh, 24px); letter-spacing: .08em; }
+            .card-draw-message {
+                width: 100%;
+                min-width: 0;
+                min-height: clamp(110px, 24vh, 200px);
+                box-sizing: border-box;
+                padding: clamp(14px, 3vw, 28px);
+                margin-bottom: clamp(14px, 2.5vh, 28px);
+            }
+            .card-draw-message p { font-size: clamp(1.2rem, 3.2vw, 2.25rem); line-height: 1.45; overflow-wrap: anywhere; word-break: normal; }
             .deck-editor-content { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px !important; min-height: 0 !important; height: min(56dvh, 480px); flex: 1 1 auto; }
             .deck-editor-content > div { min-width: 0; min-height: 0; }
             .deck-editor-text { width: 100%; min-width: 0; min-height: 0; height: 100%; flex: 1 1 auto; resize: none; line-height: 1.55; }
@@ -1391,7 +1411,7 @@
                             onClick={() => setDrawnCard({ ...drawnCard, show: false })}
                         >
                             <div 
-                                className={`p-10 rounded-3xl shadow-2xl text-center popup-content border-8 max-w-[80vw] min-w-[30vw] cursor-pointer hover:scale-105 transition-transform ${
+                                className={`card-draw-popup rounded-3xl shadow-2xl text-center popup-content border-8 max-w-[80vw] min-w-[30vw] cursor-pointer hover:scale-105 transition-transform ${
                                     drawnCard.type === '機會' 
                                     ? 'bg-green-100 border-green-500 shadow-[0_0_50px_rgba(34,197,94,0.5)]' 
                                     : 'bg-amber-100 border-amber-500 shadow-[0_0_50px_rgba(245,158,11,0.5)]'
@@ -1404,8 +1424,8 @@
                                     {drawnCard.type}
                                 </h2>
                                 
-                                <div className="py-8 px-4 bg-white/80 rounded-2xl min-h-[150px] flex items-center justify-center border-2 border-dashed border-gray-300 mb-8">
-                                    <p className="text-4xl md:text-5xl font-bold text-gray-800 leading-snug break-keep">
+                                <div className="card-draw-message bg-white/80 rounded-2xl min-h-[150px] flex items-center justify-center border-2 border-dashed border-gray-300">
+                                    <p className="text-4xl md:text-5xl font-bold text-gray-800 leading-snug break-words">
                                         {drawnCard.text}
                                     </p>
                                 </div>
