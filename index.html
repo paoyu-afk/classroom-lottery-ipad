@@ -239,6 +239,24 @@
             .popup-overlay { box-sizing: border-box; overflow-y: auto; overscroll-behavior: contain; padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
             .popup-overlay .popup-content { box-sizing: border-box; max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
             .popup-overlay textarea, .popup-overlay input, .popup-overlay select { font-size: 16px !important; }
+            .deck-editor-modal .popup-content {
+                width: min(96vw, 1024px);
+                min-width: 0;
+                min-height: 0;
+                max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px);
+                animation: fadeInOverlay .2s ease-out both;
+            }
+            .deck-editor-modal .deck-editor-content { height: min(52dvh, 460px); }
+            .deck-editor-modal .deck-editor-text {
+                display: block;
+                position: relative;
+                z-index: 1;
+                pointer-events: auto;
+                touch-action: auto;
+                -webkit-user-select: text;
+                user-select: text;
+                caret-color: #111827;
+            }
             .card-draw-popup {
                 width: min(90vw, 920px);
                 min-width: 0;
@@ -1032,8 +1050,8 @@
                         {/* --- Deck Setup Modal --- */}
                         {showDeckModal && (
                             <div 
-                                className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[200] flex items-center justify-center popup-overlay p-4"
-                                onClick={() => setShowDeckModal(false)}
+                                className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[200] flex items-center justify-center popup-overlay p-4 deck-editor-modal"
+                                onClick={(e) => { if (e.target === e.currentTarget) setShowDeckModal(false); }}
                             >
                                 <div 
                                     className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] flex flex-col popup-content"
@@ -1053,6 +1071,9 @@
                                                 className="flex-1 border-x border-b border-green-200 rounded-b-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 resize-none custom-scroll leading-relaxed deck-editor-text"
                                                 value={chanceText}
                                                 onChange={(e) => setChanceText(e.target.value)}
+                                                aria-label="機會卡牌內容，每行一張"
+                                                autoCapitalize="off"
+                                                spellCheck={false}
                                             ></textarea>
                                         </div>
                                         <div className="flex-1 flex flex-col">
@@ -1063,6 +1084,9 @@
                                                 className="flex-1 border-x border-b border-amber-200 rounded-b-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none custom-scroll leading-relaxed deck-editor-text"
                                                 value={fateText}
                                                 onChange={(e) => setFateText(e.target.value)}
+                                                aria-label="命運卡牌內容，每行一張"
+                                                autoCapitalize="off"
+                                                spellCheck={false}
                                             ></textarea>
                                         </div>
                                     </div>
