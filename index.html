@@ -180,6 +180,12 @@
         .popup-content {
             animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
+        .winner-fireworks {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
         @keyframes popIn {
             from { opacity: 0; transform: scale(0.5); }
             to { opacity: 1; transform: scale(1); }
@@ -328,6 +334,102 @@
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
+
+        const FireworksOverlay = () => {
+            const canvasRef = useRef(null);
+
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                const context = canvas.getContext('2d');
+                const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+                if (motionQuery.matches) return;
+
+                let width = 0;
+                let height = 0;
+                let frameId = 0;
+                let burstTimer = 0;
+                const startedAt = performance.now();
+                const particles = [];
+                const colors = ['#ff4664', '#ffd447', '#48e5ff', '#b77aff', '#63f29a', '#ffffff'];
+
+                const resize = () => {
+                    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                    width = window.innerWidth;
+                    height = window.innerHeight;
+                    canvas.width = Math.round(width * dpr);
+                    canvas.height = Math.round(height * dpr);
+                    canvas.style.width = `${width}px`;
+                    canvas.style.height = `${height}px`;
+                    context.setTransform(dpr, 0, 0, dpr, 0, 0);
+                };
+
+                const burst = () => {
+                    if (performance.now() - startedAt > 4200) return;
+                    const x = width * (0.12 + Math.random() * 0.76);
+                    const y = height * (0.12 + Math.random() * 0.52);
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    const count = 48;
+                    for (let i = 0; i < count; i++) {
+                        const angle = (Math.PI * 2 * i) / count + Math.random() * 0.12;
+                        const speed = 1.2 + Math.random() * 4.4;
+                        particles.push({
+                            x, y,
+                            vx: Math.cos(angle) * speed,
+                            vy: Math.sin(angle) * speed,
+                            life: 1,
+                            decay: 0.012 + Math.random() * 0.012,
+                            size: 1.4 + Math.random() * 2.4,
+                            color
+                        });
+                    }
+                };
+
+                const draw = () => {
+                    context.clearRect(0, 0, width, height);
+                    context.globalCompositeOperation = 'lighter';
+                    for (let i = particles.length - 1; i >= 0; i--) {
+                        const particle = particles[i];
+                        particle.x += particle.vx;
+                        particle.y += particle.vy;
+                        particle.vx *= 0.985;
+                        particle.vy = particle.vy * 0.985 + 0.035;
+                        particle.life -= particle.decay;
+                        if (particle.life <= 0) {
+                            particles.splice(i, 1);
+                            continue;
+                        }
+                        context.globalAlpha = particle.life;
+                        context.fillStyle = particle.color;
+                        context.shadowBlur = 12;
+                        context.shadowColor = particle.color;
+                        context.beginPath();
+                        context.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                        context.fill();
+                    }
+                    context.globalAlpha = 1;
+                    context.shadowBlur = 0;
+                    context.globalCompositeOperation = 'source-over';
+                    if (performance.now() - startedAt < 5200 || particles.length > 0) {
+                        frameId = window.requestAnimationFrame(draw);
+                    }
+                };
+
+                resize();
+                burst();
+                burstTimer = window.setInterval(burst, 620);
+                window.addEventListener('resize', resize);
+                frameId = window.requestAnimationFrame(draw);
+
+                return () => {
+                    window.cancelAnimationFrame(frameId);
+                    window.clearInterval(burstTimer);
+                    window.removeEventListener('resize', resize);
+                };
+            }, []);
+
+            return <canvas ref={canvasRef} className="winner-fireworks" aria-hidden="true" />;
+        };
 
         // --- Sound System (Web Audio API) ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1381,7 +1483,8 @@
                         <div 
                             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center popup-overlay"
                         >
-                            <div className="bg-white p-8 rounded-[2rem] shadow-2xl text-center popup-content border-8 border-yellow-400 relative overflow-hidden max-w-[90vw] min-w-[50vw]">
+                            <FireworksOverlay />
+                            <div className="bg-white p-8 rounded-[2rem] shadow-2xl text-center popup-content border-8 border-yellow-400 relative z-10 overflow-hidden max-w-[90vw] min-w-[50vw]">
                                 {/* Confetti Effect */}
                                 <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20">
                                     <div className="absolute top-10 left-10 text-6xl rotate-12">🎉</div>
