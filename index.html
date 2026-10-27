@@ -186,6 +186,18 @@
             z-index: 20;
             pointer-events: none;
         }
+        .party-popper-icon {
+            position: absolute;
+            z-index: 30;
+            font-size: clamp(3rem, 7vw, 5.5rem);
+            line-height: 1;
+            pointer-events: none;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,.22));
+        }
+        .party-popper-top-left { left: -42px; top: -42px; transform: rotate(90deg); }
+        .party-popper-top-right { right: -42px; top: -42px; transform: rotate(180deg); }
+        .party-popper-bottom-left { left: -42px; bottom: -42px; transform: rotate(0deg); }
+        .party-popper-bottom-right { right: -42px; bottom: -42px; transform: rotate(-90deg); }
         @keyframes popIn {
             from { opacity: 0; transform: scale(0.5); }
             to { opacity: 1; transform: scale(1); }
@@ -370,10 +382,10 @@
                     const rect = dialog.getBoundingClientRect();
                     const countPerPopper = reducedMotion ? 15 : 30;
                     const corners = [
-                        { x: rect.left + 16, y: rect.top + 16, baseAngle: 0.72 },
-                        { x: rect.right - 16, y: rect.top + 16, baseAngle: Math.PI - 0.72 },
-                        { x: rect.left + 16, y: rect.bottom - 16, baseAngle: -0.72 },
-                        { x: rect.right - 16, y: rect.bottom - 16, baseAngle: Math.PI + 0.72 }
+                        { x: rect.left - 8, y: rect.top - 8, baseAngle: 0.72 },
+                        { x: rect.right + 8, y: rect.top - 8, baseAngle: Math.PI - 0.72 },
+                        { x: rect.left - 8, y: rect.bottom + 8, baseAngle: -0.72 },
+                        { x: rect.right + 8, y: rect.bottom + 8, baseAngle: Math.PI + 0.72 }
                     ];
                     corners.forEach((popper) => {
                         for (let i = 0; i < countPerPopper; i++) {
@@ -391,6 +403,8 @@
                                 rotation: Math.random() * Math.PI,
                                 spin: (Math.random() - 0.5) * 0.28,
                                 flutter: Math.random() * Math.PI * 2,
+                                ribbon: i % 2 === 0,
+                                trail: [],
                                 color: colors[Math.floor(Math.random() * colors.length)]
                             });
                         }
@@ -409,6 +423,8 @@
                         particle.flutter += 0.18;
                         particle.x += Math.sin(particle.flutter) * 0.9;
                         particle.rotation += particle.spin;
+                        particle.trail.unshift({ x: particle.x, y: particle.y });
+                        if (particle.trail.length > 8) particle.trail.pop();
                         particle.life -= particle.decay;
                         if (particle.life <= 0) {
                             particles.splice(i, 1);
@@ -418,6 +434,19 @@
                         context.fillStyle = particle.color;
                         context.shadowBlur = 5;
                         context.shadowColor = particle.color;
+                        if (particle.ribbon) {
+                            context.strokeStyle = particle.color;
+                            context.lineWidth = 3.5;
+                            context.lineCap = 'round';
+                            context.lineJoin = 'round';
+                            context.beginPath();
+                            particle.trail.forEach((point, pointIndex) => {
+                                if (pointIndex === 0) context.moveTo(point.x, point.y);
+                                else context.lineTo(point.x, point.y);
+                            });
+                            context.stroke();
+                            continue;
+                        }
                         context.save();
                         context.translate(particle.x, particle.y);
                         context.rotate(particle.rotation);
@@ -429,6 +458,11 @@
                     context.globalAlpha = 1;
                     context.shadowBlur = 0;
                     context.globalCompositeOperation = 'source-over';
+                    const dialog = document.querySelector('.winner-dialog');
+                    if (dialog) {
+                        const rect = dialog.getBoundingClientRect();
+                        context.clearRect(rect.left + rect.width * 0.14, rect.top + rect.height * 0.24, rect.width * 0.72, rect.height * 0.48);
+                    }
                     if (performance.now() - startedAt < animationDuration || particles.length > 0) {
                         frameId = window.requestAnimationFrame(draw);
                     }
@@ -1504,7 +1538,11 @@
                             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center popup-overlay"
                         >
                             <PartyPoppersOverlay />
-                            <div className="winner-dialog bg-white p-8 rounded-[2rem] shadow-2xl text-center popup-content border-8 border-yellow-400 relative z-10 overflow-hidden max-w-[90vw] min-w-[50vw]">
+                            <div className="winner-dialog bg-white p-8 rounded-[2rem] shadow-2xl text-center popup-content border-8 border-yellow-400 relative z-10 overflow-visible max-w-[90vw] min-w-[50vw]">
+                                <span className="party-popper-icon party-popper-top-left" aria-hidden="true">🎉</span>
+                                <span className="party-popper-icon party-popper-top-right" aria-hidden="true">🎉</span>
+                                <span className="party-popper-icon party-popper-bottom-left" aria-hidden="true">🎉</span>
+                                <span className="party-popper-icon party-popper-bottom-right" aria-hidden="true">🎉</span>
                                 {/* Confetti Effect */}
                                 <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20">
                                     <div className="absolute top-10 left-10 text-6xl rotate-12">🎉</div>
