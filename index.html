@@ -183,7 +183,7 @@
         .winner-fireworks {
             position: fixed;
             inset: 0;
-            z-index: 1;
+            z-index: 20;
             pointer-events: none;
         }
         @keyframes popIn {
@@ -342,8 +342,7 @@
                 const canvas = canvasRef.current;
                 if (!canvas) return;
                 const context = canvas.getContext('2d');
-                const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-                if (motionQuery.matches) return;
+                const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
                 let width = 0;
                 let height = 0;
@@ -369,7 +368,7 @@
                     const x = width * (0.12 + Math.random() * 0.76);
                     const y = height * (0.12 + Math.random() * 0.52);
                     const color = colors[Math.floor(Math.random() * colors.length)];
-                    const count = 48;
+                    const count = reducedMotion ? 24 : 48;
                     for (let i = 0; i < count; i++) {
                         const angle = (Math.PI * 2 * i) / count + Math.random() * 0.12;
                         const speed = 1.2 + Math.random() * 4.4;
@@ -417,7 +416,7 @@
 
                 resize();
                 burst();
-                burstTimer = window.setInterval(burst, 620);
+                burstTimer = window.setInterval(burst, reducedMotion ? 1050 : 620);
                 window.addEventListener('resize', resize);
                 frameId = window.requestAnimationFrame(draw);
 
