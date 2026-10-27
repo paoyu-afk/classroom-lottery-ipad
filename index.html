@@ -347,9 +347,9 @@
                 let width = 0;
                 let height = 0;
                 let frameId = 0;
-                let burstTimer = 0;
+                const burstTimers = [];
                 const startedAt = performance.now();
-                const launchDuration = reducedMotion ? 2400 : 1900;
+                const animationDuration = reducedMotion ? 1500 : 1150;
                 const particles = [];
                 const colors = ['#ff3d68', '#ffd329', '#24c9ff', '#a855f7', '#22c55e', '#ff7a1a'];
 
@@ -365,24 +365,27 @@
                 };
 
                 const burst = () => {
-                    if (performance.now() - startedAt > launchDuration) return;
-                    const countPerPopper = reducedMotion ? 22 : 44;
-                    [
-                        { x: width * 0.035, direction: 1 },
-                        { x: width * 0.965, direction: -1 }
-                    ].forEach((popper) => {
+                    const dialog = document.querySelector('.winner-dialog');
+                    if (!dialog) return;
+                    const rect = dialog.getBoundingClientRect();
+                    const countPerPopper = reducedMotion ? 15 : 30;
+                    const corners = [
+                        { x: rect.left + 16, y: rect.top + 16, baseAngle: 0.72 },
+                        { x: rect.right - 16, y: rect.top + 16, baseAngle: Math.PI - 0.72 },
+                        { x: rect.left + 16, y: rect.bottom - 16, baseAngle: -0.72 },
+                        { x: rect.right - 16, y: rect.bottom - 16, baseAngle: Math.PI + 0.72 }
+                    ];
+                    corners.forEach((popper) => {
                         for (let i = 0; i < countPerPopper; i++) {
-                            const angle = popper.direction === 1
-                                ? -1.28 + Math.random() * 0.9
-                                : -2.76 + Math.random() * 0.9;
-                            const speed = reducedMotion ? 5 + Math.random() * 4 : 8 + Math.random() * 7;
+                            const angle = popper.baseAngle + (Math.random() - 0.5) * 0.85;
+                            const speed = reducedMotion ? 10 + Math.random() * 5 : 16 + Math.random() * 9;
                             particles.push({
                                 x: popper.x,
-                                y: height * (0.74 + Math.random() * 0.08),
+                                y: popper.y,
                                 vx: Math.cos(angle) * speed,
                                 vy: Math.sin(angle) * speed,
                                 life: 1,
-                                decay: 0.009 + Math.random() * 0.008,
+                                decay: 0.025 + Math.random() * 0.018,
                                 width: 4 + Math.random() * 7,
                                 height: 7 + Math.random() * 10,
                                 rotation: Math.random() * Math.PI,
@@ -401,8 +404,8 @@
                         const particle = particles[i];
                         particle.x += particle.vx;
                         particle.y += particle.vy;
-                        particle.vx *= 0.992;
-                        particle.vy = particle.vy * 0.992 + 0.2;
+                        particle.vx *= 0.965;
+                        particle.vy = particle.vy * 0.965 + 0.16;
                         particle.flutter += 0.18;
                         particle.x += Math.sin(particle.flutter) * 0.9;
                         particle.rotation += particle.spin;
@@ -426,20 +429,21 @@
                     context.globalAlpha = 1;
                     context.shadowBlur = 0;
                     context.globalCompositeOperation = 'source-over';
-                    if (performance.now() - startedAt < launchDuration + 900 || particles.length > 0) {
+                    if (performance.now() - startedAt < animationDuration || particles.length > 0) {
                         frameId = window.requestAnimationFrame(draw);
                     }
                 };
 
                 resize();
                 burst();
-                burstTimer = window.setInterval(burst, reducedMotion ? 750 : 430);
+                burstTimers.push(window.setTimeout(burst, reducedMotion ? 360 : 130));
+                if (!reducedMotion) burstTimers.push(window.setTimeout(burst, 260));
                 window.addEventListener('resize', resize);
                 frameId = window.requestAnimationFrame(draw);
 
                 return () => {
                     window.cancelAnimationFrame(frameId);
-                    window.clearInterval(burstTimer);
+                    burstTimers.forEach((timerId) => window.clearTimeout(timerId));
                     window.removeEventListener('resize', resize);
                 };
             }, []);
@@ -1500,7 +1504,7 @@
                             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center popup-overlay"
                         >
                             <PartyPoppersOverlay />
-                            <div className="bg-white p-8 rounded-[2rem] shadow-2xl text-center popup-content border-8 border-yellow-400 relative z-10 overflow-hidden max-w-[90vw] min-w-[50vw]">
+                            <div className="winner-dialog bg-white p-8 rounded-[2rem] shadow-2xl text-center popup-content border-8 border-yellow-400 relative z-10 overflow-hidden max-w-[90vw] min-w-[50vw]">
                                 {/* Confetti Effect */}
                                 <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20">
                                     <div className="absolute top-10 left-10 text-6xl rotate-12">🎉</div>
